@@ -1,31 +1,238 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    
-    <script src="./logic.js"></script>
-  </head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seamless AR Experience</title>
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe-master.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body>
+  <a-scene 
+    mindar-image="imageTargetSrc:./targets.mind ; autoStart: false; uiLoading: no; uiError: no; uiScanning: no;"
+    renderer="colorManagement: true, physicallyCorrectLights" 
+    vr-mode-ui="enabled: false" 
+    device-orientation-permission-ui="enabled: false">
 
-  <body>
-    <div id="debug-status" style="position: fixed; top: 10px; left: 10px; background: red; color: white; font-size: 18px; padding: 10px; z-index: 9999; font-family: monospace;">
-      STATUS: SEARCHING...
-    </div>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;" 
-             vr-mode-ui="enabled: false" 
-             device-orientation-permission-ui="enabled: false"
-             ghost-logic> <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <!-- Anchor 1 -->
+    <a-entity id="anchor1" mindar-image-target="targetIndex: 0">
+      <a-plane 
+        id="redSquare1"
+        color="red" 
+        width="0.5" 
+        height="0.5"
+        position="0 0 0"
+        visible="false">
+      </a-plane>
+    </a-entity>
 
-      <a-entity mindar-image-target="targetIndex: 0" id="my-target">
-         <a-sphere color="blue" radius="0.05"></a-sphere>
-      </a-entity>
+    <!-- Anchor 2 -->
+    <a-entity id="anchor2" mindar-image-target="targetIndex: 0">
+      <a-plane 
+        id="redSquare2"
+        color="red" 
+        width="0.5" 
+        height="0.5"
+        position="0 0 0"
+        visible="false">
+      </a-plane>
+    </a-entity>
 
-      <a-entity id="my-content" position="0 0 -1000" visible="false">
-         <a-box color="red" position="0 0 0" scale="0.5 0.5 0.5" opacity="0.8"></a-box>
-      </a-entity>
+  </a-scene>
 
-    </a-scene>
-  </body>
+  <div id="startButton" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+    <button onclick="startAR()" style="padding: 20px 40px; font-size: 18px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+      Start AR Experience
+    </button>
+  </div>
+
+  <div id="instructions" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 8px; z-index: 999; display: none; text-align: center;">
+    Point camera at the example card image. The red square will appear in the same location regardless of anchor position.
+  </div>
+
+  <div id="error" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,0,0,0.9); color: white; padding: 20px; border-radius: 8px; z-index: 1001; display: none; text-align: center; max-width: 80%;">
+    <h3>Error</h3>
+    <p id="errorMessage"></p>
+  </div>
+
+  <script>
+    let sceneEl;
+    let anchor1, anchor2;
+    let square1, square2;
+    let anchor1Visible = false;
+    let anchor2Visible = false;
+    let worldPosition = null;
+    let calibrated = false;
+
+    let sceneReady = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      sceneEl = document.querySelector('a-scene');
+      
+      // Wait for A-Frame scene to be loaded
+      sceneEl.addEventListener('loaded', () => {
+        console.log('Scene loaded');
+        sceneReady = true;
+        
+        // Get element references after scene is loaded
+        anchor1 = document.getElementById('anchor1');
+        anchor2 = document.getElementById('anchor2');
+        square1 = document.getElementById('redSquare1');
+        square2 = document.getElementById('redSquare2');
+
+        // Verify elements exist
+        if (!anchor1 || !anchor2 || !square1 || !square2) {
+          console.error('Failed to get element references');
+          return;
+        }
+
+        console.log('All elements found, setting up event listeners');
+
+        // Add error listener
+        sceneEl.addEventListener('arError', (event) => {
+          showError('AR Error: ' + event.detail.error);
+        });
+
+        sceneEl.addEventListener('arReady', () => {
+          console.log('AR system ready');
+        });
+      });
+
+        // Listen for anchor visibility changes
+        anchor1.addEventListener('targetFound', () => {
+        anchor1Visible = true;
+        if (!calibrated) {
+          // First time seeing anchor1 - set world position
+          calibrateWorldPosition(anchor1, square1);
+          square1.setAttribute('visible', true);
+        } else {
+          // Update square position based on stored world position
+          updateSquarePosition(anchor1, square1);
+          square1.setAttribute('visible', true);
+        }
+      });
+
+      anchor1.addEventListener('targetLost', () => {
+        anchor1Visible = false;
+        square1.setAttribute('visible', false);
+      });
+
+      anchor2.addEventListener('targetFound', () => {
+        anchor2Visible = true;
+        if (!calibrated) {
+          // First time seeing anchor2 - set world position
+          calibrateWorldPosition(anchor2, square2);
+          square2.setAttribute('visible', true);
+        } else {
+          // Update square position based on stored world position
+          updateSquarePosition(anchor2, square2);
+          square2.setAttribute('visible', true);
+        }
+      });
+
+      anchor2.addEventListener('targetLost', () => {
+        anchor2Visible = false;
+        square2.setAttribute('visible', false);
+      });
+    });
+  
+
+    function calibrateWorldPosition(anchor, square) {
+      // Get the world position of the square relative to first detected anchor
+      const squareWorldPos = new THREE.Vector3();
+      square.object3D.getWorldPosition(squareWorldPos);
+      worldPosition = squareWorldPos;
+      calibrated = true;
+      console.log('Calibrated world position:', worldPosition);
+    }
+
+    function updateSquarePosition(anchor, square) {
+      if (!worldPosition) return;
+
+      // Get anchor's world position and rotation
+      const anchorWorldPos = new THREE.Vector3();
+      const anchorWorldQuat = new THREE.Quaternion();
+      
+      anchor.object3D.getWorldPosition(anchorWorldPos);
+      anchor.object3D.getWorldQuaternion(anchorWorldQuat);
+
+      // Calculate local position for this anchor to match world position
+      const localPos = worldPosition.clone().sub(anchorWorldPos);
+      
+      // Apply inverse rotation to get proper local coordinates
+      const inverseQuat = anchorWorldQuat.clone().invert();
+      localPos.applyQuaternion(inverseQuat);
+
+      // Update square position
+      square.object3D.position.copy(localPos);
+    }
+
+    async function startAR() {
+      const startButton = document.getElementById('startButton');
+      const instructions = document.getElementById('instructions');
+      
+      if (!sceneReady) {
+        showError('Scene is still loading. Please wait a moment and try again.');
+        return;
+      }
+      
+      try {
+        // Request camera permission first
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          } 
+        });
+        
+        console.log('Camera access granted');
+        
+        // Stop the test stream - Mind AR will create its own
+        stream.getTracks().forEach(track => track.stop());
+        
+        startButton.style.display = 'none';
+        instructions.style.display = 'block';
+        
+        // Wait a moment for everything to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Start Mind AR - access the system directly from the scene
+        const mindarSystem = sceneEl.systems['mindar-image-system'];
+        
+        if (!mindarSystem) {
+          showError('Mind AR system not found. The library may not have loaded correctly.');
+          startButton.style.display = 'block';
+          return;
+        }
+        
+        console.log('Starting Mind AR...');
+        await mindarSystem.start();
+        
+        console.log('AR started successfully');
+        
+      } catch (error) {
+        console.error('Error starting AR:', error);
+        showError('Failed to start AR. Error: ' + error.message);
+        startButton.style.display = 'block';
+      }
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error');
+      const errorMessage = document.getElementById('errorMessage');
+      errorMessage.textContent = message;
+      errorDiv.style.display = 'block';
+    }
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</body>
 </html>
