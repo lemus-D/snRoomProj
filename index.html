@@ -4,40 +4,58 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        // Select the elements by their IDs
-        const videoPlane = document.querySelector('#video-plane');
-        const videoAsset = document.querySelector('#mountainVid');
+<!--    <script>-->
+<!--      document.addEventListener("DOMContentLoaded", function() {-->
+<!--        // Select the elements by their IDs-->
+<!--        const videoPlane = document.querySelector('#video-plane');-->
+<!--        const videoAsset = document.querySelector('#mountainVid');-->
 
-        // Add the click event listener
-        videoPlane.addEventListener("click", event => {
-          console.log("Video plane clicked - Playing video");
-          videoAsset.play();
-        });
-      });
-    </script>
+<!--        // Add the click event listener-->
+<!--        videoPlane.addEventListener("click", event => {-->
+<!--          console.log("Video plane clicked - Playing video");-->
+<!--          videoAsset.play();-->
+<!--        });-->
+<!--      });-->
+<!--    </script>-->
   </head>
   <body>
     <a-scene
-      mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 2; filterMinCF: 0.00000000001" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.00000000001" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
       <a-assets>
-<!--        <a-asset-item id="bearModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/band-example/bear/scene.gltf"></a-asset-item>-->
-<!--        <a-asset-item id="raccoonModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/band-example/raccoon/scene.gltf"></a-asset-item>-->
-        <video id="mountainVid" src="mountains.mp4"></video>
-        <img id ="eelLogo" src="EEL.png"/>
+        <img id ="magneto" src="./Images/MagnetohydrodynamicDrive.png"/>
+        <img id ="HandOptimizing" src="./Images/OptimizingHandPositionforSwimming.png">
+        <img id = "DeskTopVR" src="./Images/VirtualRealityExperiences.png">
+        <img id = "Aurality" src = "./Images/AugmentedAurality.png">
+        <img id = "HandsOnEngineering" src = "./Images/HandsOnEngineering.png">
+        <img id = "SwarmBots" src = "./Images/SwarmRobots.png">
+        <img id = "GoldFish" src = "./Images/AutomousVehicles.png">
       </a-assets>
 
      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="near: 10; far: 10000; objects: .clickable"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
 <!--        <a-plane id="video-plane" class="clickable" src="#mountainVid" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>-->
-          <a-plane id="eelLogo" src="#eelLogo" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+          <a-plane id="magneto" src="#magneto" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
-<!--      <a-entity mindar-image-target="targetIndex: 1">-->
-<!--        <a-gltf-model rotation="0 0 0 " position="0 -0.25 0" scale="0.05 0.05 0.05" src="#bearModel" animation-mixer>-->
-<!--      </a-entity>-->
+      <a-entity mindar-image-target="targetIndex: 1">
+        <a-plane id="HandOptimizing" src="#HandOptimizing" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+      <a-entity mindar-image-target="targetIndex: 2">
+        <a-plane id="DeskTopVR" src="#DeskTopVR" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+      <a-entity mindar-image-target="targetIndex: 3">
+        <a-plane id="Aurality" src="#Aurality" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+      <a-entity mindar-image-target="targetIndex: 4">
+        <a-plane id="HandsOnEngineering" src="#HandsOnEngineering" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+      <a-entity mindar-image-target="targetIndex: 6">
+        <a-plane id="SwarmBots" src="#SwarmBots" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
+      <a-entity mindar-image-target="targetIndex: 7">
+        <a-plane id="GoldFish" src="#GoldFish" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+      </a-entity>
     </a-scene>
   </body>
 </html>
