@@ -4,57 +4,115 @@
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-<!--    <script>-->
-<!--      document.addEventListener("DOMContentLoaded", function() {-->
-<!--        // Select the elements by their IDs-->
-<!--        const videoPlane = document.querySelector('#video-plane');-->
-<!--        const videoAsset = document.querySelector('#mountainVid');-->
 
-<!--        // Add the click event listener-->
-<!--        videoPlane.addEventListener("click", event => {-->
-<!--          console.log("Video plane clicked - Playing video");-->
-<!--          videoAsset.play();-->
-<!--        });-->
-<!--      });-->
-<!--    </script>-->
+    <style>
+      /* CSS for the full-screen popup overlay */
+      #image-popup-overlay {
+        display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.85); /* Semi-transparent black background */
+        z-index: 9999; /* Ensure it sits on top of the A-Frame canvas */
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      #popup-image {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+        border-radius: 8px;
+      }
+    </style>
+
+    <script>
+      // Component to handle clicking the 3D planes
+      AFRAME.registerComponent('popup-on-click', {
+        init: function () {
+          const el = this.el;
+          const overlay = document.querySelector('#image-popup-overlay');
+          const popupImg = document.querySelector('#popup-image');
+
+          el.addEventListener('click', function () {
+            console.log("Plane clicked!");
+
+            // 1. Get the ID of the image asset this plane uses (e.g., "#magneto")
+            const assetId = el.getAttribute('src');
+
+            // 2. Find the actual <img> tag in <a-assets> using that ID
+            const assetEl = document.querySelector(assetId);
+
+            if (assetEl) {
+              // 3. Set the popup's image source to match the clicked image
+              popupImg.src = assetEl.getAttribute('src');
+
+              // 4. Show the overlay
+              overlay.style.display = 'flex';
+            }
+          });
+        }
+      });
+
+      // Script to handle closing the popup when the user taps it
+      document.addEventListener("DOMContentLoaded", function() {
+        const overlay = document.querySelector('#image-popup-overlay');
+        overlay.addEventListener('click', function() {
+          overlay.style.display = 'none'; // Hide overlay
+          document.querySelector('#popup-image').src = ''; // Clear image
+        });
+      });
+    </script>
   </head>
   <body>
+
+    <div id="image-popup-overlay">
+      <img id="popup-image" src="" alt="Enlarged Info" />
+    </div>
+
     <a-scene
-      mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.00000000001" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 1; filterMinCF: 0.00000000001"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false">
 
       <a-assets>
-        <img id ="magneto" src="./Images/MagnetohydrodynamicDrive.png"/>
-        <img id ="HandOptimizing" src="./Images/OptimizingHandPositionforSwimming.png">
-        <img id = "DeskTopVR" src="./Images/VirtualRealityExperiences.png">
-        <img id = "Aurality" src = "./Images/AugmentedAurality.png">
-        <img id = "HandsOnEngineering" src = "./Images/HandsOnEngineering.png">
-        <img id = "SwarmBots" src = "./Images/SwarmRobots.png">
-        <img id = "GoldFish" src = "./Images/AutomousVehicles.png">
+        <img id="magneto" src="./Images/MagnetohydrodynamicDrive.png"/>
+        <img id="HandOptimizing" src="./Images/OptimizingHandPositionforSwimming.png">
+        <img id="DeskTopVR" src="./Images/VirtualRealityExperiences.png">
+        <img id="Aurality" src="./Images/AugmentedAurality.png">
+        <img id="HandsOnEngineering" src="./Images/HandsOnEngineering.png">
+        <img id="SwarmBots" src="./Images/SwarmRobots.png">
+        <img id="GoldFish" src="./Images/AutomousVehicles.png">
       </a-assets>
 
-     <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="near: 10; far: 10000; objects: .clickable"></a-camera>
+      <a-camera position="0 0 0" look-controls="enabled: false" cursor="fuse: false; rayOrigin: mouse;" raycaster="near: 0; far: 10000; objects: .clickable"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-<!--        <a-plane id="video-plane" class="clickable" src="#mountainVid" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>-->
-          <a-plane id="magneto" src="#magneto" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+        <a-plane class="clickable" popup-on-click id="plane-magneto" src="#magneto" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
       <a-entity mindar-image-target="targetIndex: 1">
-        <a-plane id="HandOptimizing" src="#HandOptimizing" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+        <a-plane class="clickable" popup-on-click id="plane-HandOptimizing" src="#HandOptimizing" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
       <a-entity mindar-image-target="targetIndex: 2">
-        <a-plane id="DeskTopVR" src="#DeskTopVR" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+        <a-plane class="clickable" popup-on-click id="plane-DeskTopVR" src="#DeskTopVR" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
       <a-entity mindar-image-target="targetIndex: 3">
-        <a-plane id="Aurality" src="#Aurality" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+        <a-plane class="clickable" popup-on-click id="plane-Aurality" src="#Aurality" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
       <a-entity mindar-image-target="targetIndex: 4">
-        <a-plane id="HandsOnEngineering" src="#HandsOnEngineering" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+        <a-plane class="clickable" popup-on-click id="plane-HandsOnEngineering" src="#HandsOnEngineering" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
       <a-entity mindar-image-target="targetIndex: 6">
-        <a-plane id="SwarmBots" src="#SwarmBots" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+        <a-plane class="clickable" popup-on-click id="plane-SwarmBots" src="#SwarmBots" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
       <a-entity mindar-image-target="targetIndex: 7">
-        <a-plane id="GoldFish" src="#GoldFish" position="0 0 0" height ="1" width="1" rotation="0 0 0"></a-plane>
+        <a-plane class="clickable" popup-on-click id="plane-GoldFish" src="#GoldFish" position="0 0 0" height="1" width="1" rotation="0 0 0"></a-plane>
       </a-entity>
     </a-scene>
   </body>
